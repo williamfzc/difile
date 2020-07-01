@@ -8,6 +8,12 @@ lightweight diff-file library with difflib
 - programmable
 - dirs and files
 
+## installation
+
+```bash
+pip install difile
+```
+
 ## usage
 
 compare files and get a line list:
