@@ -35,6 +35,7 @@ from filecmp import dircmp
 import difflib
 import os
 import typing
+import warnings
 
 CHARSET = "utf-8"
 # same
@@ -97,8 +98,9 @@ class Difile(object):
                 # ignore this line
                 continue
             else:
-                # unknown! raise it
-                raise RuntimeError(f"unknown line {line.line_no}: {line.content}")
+                # unknown
+                warnings.warn(f"unknown line {left_line_no}/{right_line_no}: {line.content}")
+                continue
             result.append(line)
         return result
 
