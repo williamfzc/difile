@@ -69,7 +69,7 @@ class Difile(object):
         self,
         left: typing.Union[str, os.PathLike],
         right: typing.Union[str, os.PathLike],
-    ):
+    ) -> typing.List[Line]:
         diff = difflib.Differ()
         result = list()
         with open(left, encoding=CHARSET) as f:
@@ -108,7 +108,7 @@ class Difile(object):
         self,
         left: typing.Union[str, os.PathLike],
         right: typing.Union[str, os.PathLike],
-    ):
+    ) -> typing.List[typing.List[Line]]:
         cmp_result = dircmp(left, right)
         result = list()
 
