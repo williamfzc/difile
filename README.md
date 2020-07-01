@@ -16,7 +16,7 @@ pip install difile
 
 ## usage
 
-compare files and get a line list:
+compare files and get a `List[Line]` object:
 
 ```python
 from difile import Difile
@@ -48,6 +48,17 @@ get:
 - line 2: `this is file1` -> `that is file1`
 - line 3: `random` -> enter
 - line 4: has been removed
+
+of course compare dirs:
+
+```python
+from difile import Difile
+difile = Difile()
+
+diff_obj = difile.compare_dir("dirs/dir1", "dirs/dir2")
+```
+
+you will get a `List[List[Line]]` object.
 
 ## license
 
