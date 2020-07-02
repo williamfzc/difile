@@ -31,4 +31,4 @@ __VERSION__ = r"0.2.0"
 __DESCRIPTION__ = r"lightweight diff-file library with difflib"
 
 
-from difile.core import Difile
+from difile.core import Difile, LineCode, Line
