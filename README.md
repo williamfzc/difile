@@ -1,6 +1,7 @@
 # difile
 
 ![](https://github.com/williamfzc/difile/workflows/Python%20package/badge.svg)
+[![codecov](https://codecov.io/gh/williamfzc/difile/branch/master/graph/badge.svg)](https://codecov.io/gh/williamfzc/difile)
 
 lightweight diff-file library with difflib
 

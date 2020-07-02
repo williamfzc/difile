@@ -3,8 +3,9 @@ import pathlib
 
 
 difile = Difile()
-dir1 = pathlib.Path("dirs/dir1")
-dir2 = pathlib.Path("dirs/dir2")
+workspace = pathlib.Path(__file__).parent
+dir1 = workspace / "dirs" / "dir1"
+dir2 = workspace / "dirs" / "dir2"
 file1 = dir1 / "file1.txt"
 file2 = dir2 / "file1.txt"
 
@@ -22,10 +23,10 @@ def test_compare_file():
 
 def test_compare_dir():
     r = difile.compare_dir(dir1, dir2)
-    assert len(list(r)) == 2
+    assert len(list(r)) == 3
     assert len(list(r[0])) == 6
     r1 = difile.compare_dir(dir1.as_posix(), dir2.as_posix())
-    assert len(list(r1)) == 2
+    assert len(list(r1)) == 3
     assert len(list(r1[0])) == 6
 
     for f1, f2 in zip(r, r1):
