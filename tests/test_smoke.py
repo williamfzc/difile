@@ -1,4 +1,4 @@
-from difile import Difile
+from difile import Difile, LineCode
 import pathlib
 
 
@@ -32,6 +32,12 @@ def test_compare_dir():
         for l1, l2 in zip(f1, f2):
             assert l1.line_no == l2.line_no
             assert l1.code == l2.code
+
+
+def test_code():
+    r = difile.compare_file(file1, file2)
+    assert r[0].code == LineCode.REMOVE
+    assert r[1].code == LineCode.ADD
 
 
 def test_cli():
