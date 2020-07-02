@@ -29,5 +29,5 @@ setup(
     ],
     python_requires=">=3.6",
     install_requires=["fire>=0.2.1",],
-    entry_points={"console_scripts": ["difile = difile:main",]},
+    entry_points={"console_scripts": ["difile = difile.cli:main",]},
 )
