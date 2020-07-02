@@ -1,5 +1,7 @@
 # difile
 
+![](https://github.com/williamfzc/difile/workflows/Python%20package/badge.svg)
+
 lightweight diff-file library with difflib
 
 ## goal
@@ -15,6 +17,22 @@ pip install difile
 ```
 
 ## usage
+
+### command line
+
+```bash
+difile compare_file file1.txt file2.txt
+difile compare_dir dir1 dir2
+```
+
+or a short name:
+
+```bash
+difile cf file1.txt file2.txt
+difile cd dir1 dir2
+```
+
+### script
 
 compare files and get a `List[Line]` object:
 
