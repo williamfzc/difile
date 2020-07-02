@@ -6,14 +6,17 @@ import typing
 import warnings
 
 CHARSET = "utf-8"
-# same
-CODE_IGNORE = "  "
-# add
-CODE_ADD = "+ "
-# remove
-CODE_REMOVE = "- "
-# invalid
-CODE_UNKNOWN = "? "
+
+
+class LineCode(object):
+    # same
+    IGNORE = "  "
+    # add
+    ADD = "+ "
+    # remove
+    REMOVE = "- "
+    # invalid
+    UNKNOWN = "? "
 
 
 class Line(object):
@@ -49,17 +52,17 @@ class Difile(object):
         for raw_line in diff.compare(left_content, right_content):
             code, content = raw_line[:2], raw_line[2:]
             line = Line(-1, content, code)
-            if line.is_(CODE_ADD):
+            if line.is_(LineCode.ADD):
                 # right
                 line.file_path = right
                 right_line_no += 1
                 line.line_no = right_line_no
-            elif line.is_(CODE_REMOVE):
+            elif line.is_(LineCode.REMOVE):
                 # left
                 line.file_path = left
                 left_line_no += 1
                 line.line_no = left_line_no
-            elif line.is_(CODE_IGNORE):
+            elif line.is_(LineCode.IGNORE):
                 # both
                 left_line_no += 1
                 right_line_no += 1
