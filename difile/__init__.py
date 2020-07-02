@@ -36,6 +36,7 @@ import difflib
 import os
 import typing
 import warnings
+import fire
 
 CHARSET = "utf-8"
 # same
@@ -99,7 +100,9 @@ class Difile(object):
                 continue
             else:
                 # unknown
-                warnings.warn(f"unknown line {left_line_no}/{right_line_no}: {line.content}")
+                warnings.warn(
+                    f"unknown line {left_line_no}/{right_line_no}: {line.content}"
+                )
                 continue
             result.append(line)
         return result
@@ -131,3 +134,23 @@ class Difile(object):
 
         _loop(cmp_result)
         return result
+
+
+class Cli(object):
+    d = Difile()
+
+    def compare_file(self, left, right):
+        for each in self.d.compare_file(left, right):
+            print(each)
+
+    def compare_dir(self, left, right):
+        for each_file in self.d.compare_dir(left, right):
+            for each_line in each_file:
+                print(each_line)
+
+    cf = compare_file
+    cd = compare_dir
+
+
+def main():
+    fire.Fire(Cli)

@@ -28,4 +28,6 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     python_requires=">=3.6",
+    install_requires=["fire>=0.2.1",],
+    entry_points={"console_scripts": ["difile = difile:main",]},
 )
