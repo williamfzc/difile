@@ -5,18 +5,29 @@ import os
 import typing
 import warnings
 
+try:
+    from loguru import logger
+except ImportError:
+    import logging
+
+    logger = logging
+
 CHARSET = "utf-8"
+
+
+TypeLineCode = str
+TypeResponse = typing.List["Line"]
 
 
 class LineCode(object):
     # same
-    IGNORE = "  "
+    IGNORE: TypeLineCode = "  "
     # add
-    ADD = "+ "
+    ADD: TypeLineCode = "+ "
     # remove
-    REMOVE = "- "
+    REMOVE: TypeLineCode = "- "
     # invalid
-    UNKNOWN = "? "
+    UNKNOWN: TypeLineCode = "? "
 
 
 class Line(object):
@@ -36,30 +47,60 @@ class Line(object):
 
 
 class Difile(object):
-    def compare_file(
+    def file2line(
+        self, path: typing.Union[str, os.PathLike], code: TypeLineCode
+    ) -> TypeResponse:
+        with open(path) as f:
+            content = f.readlines()
+        return self.list2line(content, code, path)
+
+    def string2line(
         self,
-        left: typing.Union[str, os.PathLike],
-        right: typing.Union[str, os.PathLike],
-    ) -> typing.List[Line]:
+        string: str,
+        code: TypeLineCode,
+        sep: str = os.linesep,
+        path: typing.Union[str, os.PathLike] = None,
+    ) -> TypeResponse:
+        return self.list2line(string.split(sep), code, path)
+
+    def list2line(
+        self,
+        string_list: typing.List[str],
+        code: TypeLineCode,
+        path: os.PathLike = None,
+    ) -> TypeResponse:
+        ret = list()
+        for index, each in enumerate(string_list):
+            line = Line(index + 1, each, code, path)
+            ret.append(line)
+        return ret
+
+    def compare_string(
+        self, left: str, right: str, sep: str = os.linesep
+    ) -> TypeResponse:
+        return self.compare_string_list(left.split(sep), right.split(sep))
+
+    def compare_string_list(
+        self,
+        left: typing.List[str],
+        right: typing.List[str],
+        left_path: os.PathLike,
+        right_path: os.PathLike,
+    ) -> TypeResponse:
         diff = difflib.Differ()
         result = list()
-        with open(left, encoding=CHARSET) as f:
-            left_content = f.readlines()
-        with open(right, encoding=CHARSET) as f:
-            right_content = f.readlines()
-
         left_line_no = right_line_no = 0
-        for raw_line in diff.compare(left_content, right_content):
+        for raw_line in diff.compare(left, right):
             code, content = raw_line[:2], raw_line[2:]
             line = Line(-1, content, code)
             if line.is_(LineCode.ADD):
                 # right
-                line.file_path = right
+                line.file_path = right_path
                 right_line_no += 1
                 line.line_no = right_line_no
             elif line.is_(LineCode.REMOVE):
                 # left
-                line.file_path = left
+                line.file_path = left_path
                 left_line_no += 1
                 line.line_no = left_line_no
             elif line.is_(LineCode.IGNORE):
@@ -77,11 +118,23 @@ class Difile(object):
             result.append(line)
         return result
 
+    def compare_file(
+        self,
+        left: typing.Union[str, os.PathLike],
+        right: typing.Union[str, os.PathLike],
+    ) -> TypeResponse:
+        with open(left, encoding=CHARSET) as f:
+            left_content = f.readlines()
+        with open(right, encoding=CHARSET) as f:
+            right_content = f.readlines()
+
+        return self.compare_string_list(left_content, right_content, left, right)
+
     def compare_dir(
         self,
         left: typing.Union[str, os.PathLike],
         right: typing.Union[str, os.PathLike],
-    ) -> typing.List[typing.List[Line]]:
+    ) -> typing.List[TypeResponse]:
         cmp_result = dircmp(left, right)
         result = list()
 
@@ -89,15 +142,32 @@ class Difile(object):
             # by default, comparison based on timeline: left: old; right: new
             # left only contains something has been removed, so ignore
             # right only container something new
+
+            # new file: every lines are ADD
+            # removed file: every lines are REMOVED
+            nonlocal result
+            for each in d.left_only:
+                path = pathlib.Path(d.left) / each
+                if path.is_file():
+                    result.append(self.file2line(path, LineCode.REMOVE))
+                # todo: removed dirs
+
             for each_file in d.diff_files:
-                # todo: file was removed?
-                if each_file not in d.right_list:
-                    continue
-                # check
                 left_file_path = pathlib.Path(d.left) / each_file
                 right_file_path = pathlib.Path(d.right) / each_file
-                if left_file_path.is_file() and right_file_path.is_file():
-                    result.append(self.compare_file(left_file_path, right_file_path))
+
+                # only left
+                if (each_file in d.left_list) and (each_file not in d.right_list):
+                    result.append(self.file2line(left_file_path, LineCode.REMOVE))
+                # only right
+                elif (each_file not in d.left_list) and (each_file in d.right_list):
+                    result.append(self.file2line(right_file_path, LineCode.ADD))
+                # both
+                else:
+                    if left_file_path.is_file() and right_file_path.is_file():
+                        result.append(
+                            self.compare_file(left_file_path, right_file_path)
+                        )
             # recursive
             for _, each_cmp in d.subdirs.items():
                 _loop(each_cmp)
