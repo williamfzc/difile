@@ -1,5 +1,6 @@
-from difile import Difile, LineCode
+from difile import Difile, LineCode, Line
 import pathlib
+import typing
 
 
 difile = Difile()
@@ -11,7 +12,7 @@ file2 = dir2 / "file1.txt"
 
 
 def test_compare_file():
-    r = difile.compare_file(file1, file2)
+    r = difile.compare_file(file1, file2, contain_all=False)
     assert len(list(r)) == 6
     r1 = difile.compare_file(file1.as_posix(), file2.as_posix())
     assert len(list(r1)) == 6
@@ -48,3 +49,25 @@ def test_cli():
     subprocess.check_call(["difile", "cf", file1.as_posix(), file2.as_posix()])
     subprocess.check_call(["difile", "compare_dir", dir1.as_posix(), dir2.as_posix()])
     subprocess.check_call(["difile", "cd", dir1.as_posix(), dir2.as_posix()])
+
+
+def test_contain_all():
+    r = difile.compare_file(file1, file2, contain_all=True)
+
+    for each in r:
+        if each.is_(LineCode.IGNORE):
+            break
+    else:
+        raise AssertionError
+
+
+def test_string():
+    with open(file1) as f:
+        s1 = f.read()
+    with open(file2) as f:
+        s2 = f.read()
+    assert difile.compare_string(s1, s2, left_path=file1, right_path=file2)
+    line_list = difile.string2line("abc", LineCode.ADD)
+    assert isinstance(line_list, list)
+    assert isinstance(line_list[0], Line)
+    assert str(line_list[0])

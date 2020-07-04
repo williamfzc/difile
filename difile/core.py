@@ -69,9 +69,11 @@ class Difile(object):
         return ret
 
     def compare_string(
-        self, left: str, right: str, sep: str = os.linesep
+        self, left: str, right: str, sep: str = os.linesep, *args, **kwargs
     ) -> TypeResponse:
-        return self.compare_string_list(left.split(sep), right.split(sep))
+        return self.compare_string_list(
+            left.split(sep), right.split(sep), *args, **kwargs
+        )
 
     def compare_string_list(
         self,
@@ -79,6 +81,7 @@ class Difile(object):
         right: typing.List[str],
         left_path: os.PathLike,
         right_path: os.PathLike,
+        contain_all: bool = None,
     ) -> TypeResponse:
         diff = difflib.Differ()
         result = list()
@@ -100,8 +103,12 @@ class Difile(object):
                 # both
                 left_line_no += 1
                 right_line_no += 1
-                # ignore this line
-                continue
+                if contain_all:
+                    line.file_path = left_path
+                    line.line_no = left_line_no
+                else:
+                    # ignore this line
+                    continue
             else:
                 # unknown
                 continue
@@ -112,18 +119,22 @@ class Difile(object):
         self,
         left: typing.Union[str, os.PathLike],
         right: typing.Union[str, os.PathLike],
+        contain_all: bool = None,
     ) -> TypeResponse:
         with open(left, encoding=CHARSET) as f:
             left_content = f.readlines()
         with open(right, encoding=CHARSET) as f:
             right_content = f.readlines()
 
-        return self.compare_string_list(left_content, right_content, left, right)
+        return self.compare_string_list(
+            left_content, right_content, left, right, contain_all
+        )
 
     def compare_dir(
         self,
         left: typing.Union[str, os.PathLike],
         right: typing.Union[str, os.PathLike],
+        contain_all: bool = None,
     ) -> typing.List[TypeResponse]:
         cmp_result = dircmp(left, right)
         result = list()
@@ -162,7 +173,9 @@ class Difile(object):
             for each_file in d.diff_files:
                 left_file_path = pathlib.Path(d.left) / each_file
                 right_file_path = pathlib.Path(d.right) / each_file
-                result.append(self.compare_file(left_file_path, right_file_path))
+                result.append(
+                    self.compare_file(left_file_path, right_file_path, contain_all)
+                )
             # recursive
             for _, each_cmp in d.subdirs.items():
                 _loop(each_cmp)
