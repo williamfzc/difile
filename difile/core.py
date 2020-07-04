@@ -3,14 +3,7 @@ from filecmp import dircmp
 import difflib
 import os
 import typing
-import warnings
-
-try:
-    from loguru import logger
-except ImportError:
-    import logging
-
-    logger = logging
+import tempfile
 
 CHARSET = "utf-8"
 
@@ -111,9 +104,6 @@ class Difile(object):
                 continue
             else:
                 # unknown
-                warnings.warn(
-                    f"unknown line {left_line_no}/{right_line_no}: {line.content}"
-                )
                 continue
             result.append(line)
         return result
@@ -140,34 +130,39 @@ class Difile(object):
 
         def _loop(d: dircmp):
             # by default, comparison based on timeline: left: old; right: new
-            # left only contains something has been removed, so ignore
+            # left only contains something has been removed
             # right only container something new
 
             # new file: every lines are ADD
             # removed file: every lines are REMOVED
             nonlocal result
+
+            def _handle_side(path: pathlib.Path, is_left: bool):
+                if path.is_file():
+                    result.append(
+                        self.file2line(
+                            path, LineCode.REMOVE if is_left else LineCode.ADD
+                        )
+                    )
+                elif path.is_dir():
+                    # compare with empty dir
+                    with tempfile.TemporaryDirectory() as empty_dir:
+                        order = (path, empty_dir) if is_left else (empty_dir, path)
+                        _loop(dircmp(*order))
+
             for each in d.left_only:
                 path = pathlib.Path(d.left) / each
-                if path.is_file():
-                    result.append(self.file2line(path, LineCode.REMOVE))
-                # todo: removed dirs
+                _handle_side(path, is_left=True)
 
+            for each in d.right_only:
+                path = pathlib.Path(d.right) / each
+                _handle_side(path, is_left=False)
+
+            # both
             for each_file in d.diff_files:
                 left_file_path = pathlib.Path(d.left) / each_file
                 right_file_path = pathlib.Path(d.right) / each_file
-
-                # only left
-                if (each_file in d.left_list) and (each_file not in d.right_list):
-                    result.append(self.file2line(left_file_path, LineCode.REMOVE))
-                # only right
-                elif (each_file not in d.left_list) and (each_file in d.right_list):
-                    result.append(self.file2line(right_file_path, LineCode.ADD))
-                # both
-                else:
-                    if left_file_path.is_file() and right_file_path.is_file():
-                        result.append(
-                            self.compare_file(left_file_path, right_file_path)
-                        )
+                result.append(self.compare_file(left_file_path, right_file_path))
             # recursive
             for _, each_cmp in d.subdirs.items():
                 _loop(each_cmp)

@@ -23,9 +23,9 @@ def test_compare_file():
 
 def test_compare_dir():
     r = difile.compare_dir(dir1, dir2)
-    assert len(list(r)) == 4
+    assert len(list(r)) == 8
     r1 = difile.compare_dir(dir1.as_posix(), dir2.as_posix())
-    assert len(list(r1)) == 4
+    assert len(list(r1)) == 8
 
     for f1, f2 in zip(r, r1):
         for l1, l2 in zip(f1, f2):
