@@ -10,6 +10,7 @@ CHARSET = "utf-8"
 
 TypeLineCode = str
 TypeResponse = typing.List["Line"]
+TypePath = typing.Union[str, os.PathLike, pathlib.Path]
 
 
 class LineCode(object):
@@ -25,7 +26,7 @@ class LineCode(object):
 
 class Line(object):
     def __init__(
-        self, line_no: int, content: str, code: str, file_path: os.PathLike = None
+        self, line_no: int, content: str, code: str, file_path: TypePath = None,
     ):
         self.line_no = line_no
         self.content = content
@@ -40,9 +41,7 @@ class Line(object):
 
 
 class Difile(object):
-    def file2line(
-        self, path: typing.Union[str, os.PathLike], code: TypeLineCode
-    ) -> TypeResponse:
+    def file2line(self, path: TypePath, code: TypeLineCode) -> TypeResponse:
         with open(path) as f:
             content = f.readlines()
         return self.list2line(content, code, path)
@@ -52,15 +51,12 @@ class Difile(object):
         string: str,
         code: TypeLineCode,
         sep: str = os.linesep,
-        path: typing.Union[str, os.PathLike] = None,
+        path: TypePath = None,
     ) -> TypeResponse:
         return self.list2line(string.split(sep), code, path)
 
     def list2line(
-        self,
-        string_list: typing.List[str],
-        code: TypeLineCode,
-        path: os.PathLike = None,
+        self, string_list: typing.List[str], code: TypeLineCode, path: TypePath = None,
     ) -> TypeResponse:
         ret = list()
         for index, each in enumerate(string_list):
@@ -79,8 +75,8 @@ class Difile(object):
         self,
         left: typing.List[str],
         right: typing.List[str],
-        left_path: os.PathLike,
-        right_path: os.PathLike,
+        left_path: TypePath,
+        right_path: TypePath,
         contain_all: bool = None,
     ) -> TypeResponse:
         diff = difflib.Differ()
@@ -116,10 +112,7 @@ class Difile(object):
         return result
 
     def compare_file(
-        self,
-        left: typing.Union[str, os.PathLike],
-        right: typing.Union[str, os.PathLike],
-        contain_all: bool = None,
+        self, left: TypePath, right: TypePath, contain_all: bool = None,
     ) -> TypeResponse:
         with open(left, encoding=CHARSET) as f:
             left_content = f.readlines()
@@ -131,10 +124,7 @@ class Difile(object):
         )
 
     def compare_dir(
-        self,
-        left: typing.Union[str, os.PathLike],
-        right: typing.Union[str, os.PathLike],
-        contain_all: bool = None,
+        self, left: TypePath, right: TypePath, contain_all: bool = None,
     ) -> typing.List[TypeResponse]:
         cmp_result = dircmp(left, right)
         result = list()
@@ -148,17 +138,19 @@ class Difile(object):
             # removed file: every lines are REMOVED
             nonlocal result
 
-            def _handle_side(path: pathlib.Path, is_left: bool):
-                if path.is_file():
+            def _handle_side(cur_path: pathlib.Path, is_left: bool):
+                if cur_path.is_file():
                     result.append(
                         self.file2line(
-                            path, LineCode.REMOVE if is_left else LineCode.ADD
+                            cur_path, LineCode.REMOVE if is_left else LineCode.ADD
                         )
                     )
-                elif path.is_dir():
+                elif cur_path.is_dir():
                     # compare with empty dir
                     with tempfile.TemporaryDirectory() as empty_dir:
-                        order = (path, empty_dir) if is_left else (empty_dir, path)
+                        order = (
+                            (cur_path, empty_dir) if is_left else (empty_dir, cur_path)
+                        )
                         _loop(dircmp(*order))
 
             for each in d.left_only:
