@@ -37,7 +37,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest --cov=./difile --mypy --cov-report=xml
+        pytest --cov=./difile --mypy --cov-report=xml tests
       env:
         PYTHONPATH: .
     - name: Upload coverage to Codecov
