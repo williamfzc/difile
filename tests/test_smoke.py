@@ -1,6 +1,5 @@
-from difile import Difile, LineCode, Line
+from difile import Difile, LineCode, Line, LineOperator
 import pathlib
-import typing
 
 
 difile = Difile()
@@ -71,3 +70,13 @@ def test_string():
     assert isinstance(line_list, list)
     assert isinstance(line_list[0], Line)
     assert str(line_list[0])
+
+
+def test_operator():
+    r = difile.compare_dir(dir1, dir2)
+    r1 = LineOperator.list2dict(r)
+    assert isinstance(r1, dict)
+
+    for each in r:
+        for i in each:
+            assert i.file_path.as_posix() in r1

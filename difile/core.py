@@ -174,3 +174,31 @@ class Difile(object):
 
         _loop(cmp_result)
         return result
+
+
+class LineOperator(object):
+    """ extra operations about handling results """
+
+    @classmethod
+    def list2dict(
+        cls, result_list: typing.Union[TypeResponse, typing.List[TypeResponse]]
+    ):
+        result_dict = dict()
+
+        def dfs(r):
+            if not r:
+                return
+
+            for each in r:
+                if isinstance(each, list):
+                    dfs(each)
+                else:
+                    each: Line
+                    # hashable required
+                    key = each.file_path.as_posix()
+                    if key not in result_dict:
+                        result_dict[key] = []
+                    result_dict[key].append(each)
+
+        dfs(result_list)
+        return result_dict
