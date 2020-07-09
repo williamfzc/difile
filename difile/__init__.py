@@ -27,7 +27,7 @@ __AUTHOR__ = r"williamfzc"
 __AUTHOR_EMAIL__ = r"fengzc@vip.qq.com"
 __LICENSE__ = r"MIT"
 __URL__ = r"https://github.com/williamfzc/difile"
-__VERSION__ = r"0.3.0"
+__VERSION__ = r"0.3.1"
 __DESCRIPTION__ = r"lightweight diff-file library with difflib"
 
 
