@@ -42,7 +42,7 @@ class Line(object):
 
 class Difile(object):
     def file2line(self, path: TypePath, code: TypeLineCode) -> TypeResponse:
-        with open(path) as f:
+        with open(path, encoding=CHARSET) as f:
             content = f.readlines()
         return self.list2line(content, code, path)
 
