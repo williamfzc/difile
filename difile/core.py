@@ -165,9 +165,9 @@ class Difile(object):
             for each_file in d.diff_files:
                 left_file_path = pathlib.Path(d.left) / each_file
                 right_file_path = pathlib.Path(d.right) / each_file
-                result.append(
-                    self.compare_file(left_file_path, right_file_path, contain_all)
-                )
+                compare_result = self.compare_file(left_file_path, right_file_path, contain_all)
+                if compare_result:
+                    result.append(compare_result)
             # recursive
             for _, each_cmp in d.subdirs.items():
                 _loop(each_cmp)
